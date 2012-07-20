@@ -272,6 +272,22 @@ AC_SEARCH_LIBS(gethostbyname, [resolv nsl])
 AC_SEARCH_LIBS(recvfrom, [socket])
 AC_SEARCH_LIBS(kvm_open, [kvm])
 
+use_jsapi=no
+AC_CHECK_HEADER([js/jsapi.h], [
+  AC_CHECK_LIB(mozjs185, JS_EvaluateScript, [
+    AC_DEFINE(USE_JSAPI,,[define to use the Spidermonkey JS engine])
+    JSAPI_LIBS=-lmozjs185
+    use_jsapi=yes
+  ])
+], [ ],
+[#include <stdlib.h>
+ #include <stdint.h>
+ #ifdef _MSC_VER
+ # define XP_WIN
+ #endif])
+AM_CONDITIONAL(USE_JSAPI, test x$use_jsapi = xyes)
+AC_SUBST([JSAPI_LIBS])
+
 use_ldns=no
 AC_CHECK_HEADER([ldns/ldns.h], [
   AC_CHECK_LIB(ldns, ldns_verify_trusted, [
@@ -436,6 +452,7 @@ AC_CONFIG_FILES([Makefile
                  src/plugins/Makefile
                  src/plugins/example/Makefile
                  src/plugins/example-ldns-forward-after-nxdomain/Makefile
+                 src/plugins/example-js/Makefile
                  src/plugins/example-logging/Makefile
                  src/plugins/example-ldns-aaaa-blocking/Makefile
                  src/plugins/example-ldns-blocking/Makefile

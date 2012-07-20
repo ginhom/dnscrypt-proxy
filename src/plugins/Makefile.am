@@ -13,3 +13,8 @@ SUBDIRS += \
 	example-ldns-forward-after-nxdomain \
 	example-ldns-opendns-deviceid
 endif
+
+if USE_JSAPI
+SUBDIRS += \
+	example-js
+endif
