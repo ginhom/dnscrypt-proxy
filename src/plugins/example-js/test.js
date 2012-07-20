@@ -1,8 +1,12 @@
 
 function dcplugin_sync_pre_filter(packet) {
-  return "Incoming packet: " + JSON.stringify(packet)
+    var str = "Incoming packet: " + JSON.stringify(packet);
+
+    dcplugin_log(str);
 }
 
 function dcplugin_sync_post_filter(packet) {
-  return "Outoing packet: " + JSON.stringify(packet)
+    var str = "Outgoing packet: " + JSON.stringify(packet);
+
+    dcplugin_log(str);
 }

@@ -12,7 +12,7 @@
 typedef struct Context_ {
     JSRuntime *rt;
     JSContext *cx;
-    JSObject  *global;    
+    JSObject  *global;
 } Context;
 
 static JSClass global_class = {
@@ -29,6 +29,23 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
             report->filename ? report->filename : "<no filename=\"filename\">",
             (unsigned int) report->lineno,
             message);
+}
+
+static JSBool
+debug(JSContext *cx, unsigned argc, jsval *vp)
+{
+    jsval    *argv = JS_ARGV(cx, vp);
+    JSString *resvalue;
+    jsval     rval;
+
+    if (argc != 1) {
+        return 0;
+    }
+    rval = argv[0];
+    resvalue = JS_ValueToString(cx, rval);
+    printf("%s\n", JS_EncodeString(cx, resvalue));
+
+    return 1;
 }
 
 int
@@ -79,10 +96,12 @@ dcplugin_init(DCPlugin * const dcplugin, int argc, char *argv[])
     if (!JS_InitStandardClasses(ctx->cx, ctx->global)) {
         return -1;
     }
+    JS_DefineFunction(ctx->cx, ctx->global, "dcplugin_log", debug, 1, 0);
+    JS_DefineFunction(ctx->cx, ctx->global, "dcplugin_debug", debug, 1, 0);
     JS_EvaluateScript(ctx->cx, ctx->global, script, script_len,
                       file_name, 1, &rval);
     resvalue = JS_ValueToString(ctx->cx, rval);
-    
+
     return 0;
 }
 
@@ -90,18 +109,18 @@ int
 dcplugin_destroy(DCPlugin * const dcplugin)
 {
     Context *ctx = dcplugin_get_user_data(dcplugin);
-    
+
     JS_DestroyContext(ctx->cx);
     JS_DestroyRuntime(ctx->rt);
     JS_ShutDown();
-    
+
     return 0;
 }
 
 DCPluginSyncFilterResult
 dcplugin_sync_pre_filter(DCPlugin *dcplugin, DCPluginDNSPacket *dcp_packet)
 {
-    Context   *ctx = dcplugin_get_user_data(dcplugin);    
+    Context   *ctx = dcplugin_get_user_data(dcplugin);
     JSString  *resvalue;
     jsval      rval;
     char       script[5000];
@@ -115,15 +134,15 @@ dcplugin_sync_pre_filter(DCPlugin *dcplugin, DCPluginDNSPacket *dcp_packet)
     JS_EvaluateScript(ctx->cx, ctx->global, script, strlen(script),
                       "plugin", 1, &rval);
     resvalue = JS_ValueToString(ctx->cx, rval);
-    printf("%s\n", JS_EncodeString(ctx->cx, resvalue));    
-    
+    (void) resvalue;
+
     return DCP_SYNC_FILTER_RESULT_OK;
 }
 
 DCPluginSyncFilterResult
 dcplugin_sync_post_filter(DCPlugin *dcplugin, DCPluginDNSPacket *dcp_packet)
 {
-    Context   *ctx = dcplugin_get_user_data(dcplugin);    
+    Context   *ctx = dcplugin_get_user_data(dcplugin);
     JSString  *resvalue;
     jsval      rval;
     char       script[5000];
@@ -137,7 +156,7 @@ dcplugin_sync_post_filter(DCPlugin *dcplugin, DCPluginDNSPacket *dcp_packet)
     JS_EvaluateScript(ctx->cx, ctx->global, script, strlen(script),
                       "plugin", 1, &rval);
     resvalue = JS_ValueToString(ctx->cx, rval);
-    printf("%s\n", JS_EncodeString(ctx->cx, resvalue));    
-    
+    (void) resvalue;
+
     return DCP_SYNC_FILTER_RESULT_OK;
 }
