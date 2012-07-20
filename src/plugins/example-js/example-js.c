@@ -59,7 +59,6 @@ dcplugin_init(DCPlugin * const dcplugin, int argc, char *argv[])
     }
     fread(script, script_len, (size_t) 1U, fp);
     fclose(fp);
-    puts(script);
     if ((ctx = malloc(sizeof *ctx)) == NULL) {
         return -1;
     }
